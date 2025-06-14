@@ -24,6 +24,23 @@ struct MainScheduleView: View {
     @ObservedObject var userSettings = UserSettings.shared
     @StateObject private var viewModel = ScheduleViewModel()
     @State private var selectedDate: Date = Date()
+    @State private var swipeOffset: CGFloat = 0
+    @State private var swipeOpacity: Double = 1.0
+    @State private var isAnimatingSwipe = false
+    @State private var isCalendarPresented = false
+    
+    private let lessonTypeColors: [String: Color] = [
+        "ЛК": .green,
+        "ЛР": .orange,
+        "ПЗ": .red,
+        "Консультация": .purple,
+        "Экзамен": .red
+    ]
+    
+    private func colorForLessonType(_ type: String?) -> Color {
+        guard let type = type else { return .gray }
+        return lessonTypeColors[type] ?? .gray
+    }
     
     // Computed property for selected day's weekday (in Russian, as used by the API)
     private var selectedWeekday: String {
@@ -43,6 +60,43 @@ struct MainScheduleView: View {
         } ?? []
     }
     
+    private func animateSwipe(to direction: Int, completion: @escaping () -> Void) {
+        guard !isAnimatingSwipe else { return }
+        isAnimatingSwipe = true
+        let duration = 0.10
+        withAnimation(.easeInOut(duration: duration)) {
+            swipeOffset = CGFloat(direction) * -80
+            swipeOpacity = 0.0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            completion()
+            swipeOffset = CGFloat(direction) * 80
+            withAnimation(.easeInOut(duration: duration)) {
+                swipeOffset = 0
+                swipeOpacity = 1.0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                isAnimatingSwipe = false
+            }
+        }
+    }
+    
+    private func goToPreviousDayAnimated() {
+        animateSwipe(to: -1) {
+            goToPreviousDay()
+        }
+    }
+    private func goToNextDayAnimated() {
+        animateSwipe(to: 1) {
+            goToNextDay()
+        }
+    }
+    private func goToTodayAnimated() {
+        animateSwipe(to: 0) {
+            goToToday()
+        }
+    }
+    
     private func goToPreviousDay() {
         selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) ?? selectedDate
     }
@@ -54,92 +108,122 @@ struct MainScheduleView: View {
     }
     
     var body: some View {
-        VStack {
-            if viewModel.isLoading {
-                ProgressView("Loading schedule...")
-            } else if let error = viewModel.error, !error.isEmpty {
-                VStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.red)
-                        .font(.largeTitle)
-                    Text("Error")
-                        .font(.headline)
-                        .foregroundColor(.red)
-                    Text(error)
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(.red)
-                        .padding()
-                }
-            } else if let schedule = viewModel.schedule, let week = viewModel.currentWeek {
-                VStack(spacing: 8) {
-                    // Show selected date and weekday
-                    Text(selectedDateString)
-                        .font(.headline)
-                        .padding(.bottom, 2)
-                    if let start = schedule.startDate, let end = schedule.endDate {
-                        Text("Schedule: \(start) – \(end)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    let lessons = lessons(for: schedule, week: week)
-                    if lessons.isEmpty {
-                        Text("No lessons for this day.")
-                            .foregroundColor(.secondary)
-                    } else {
-                        List(lessons, id: \ .id) { lesson in
-                            VStack(alignment: .leading) {
-                                Text(lesson.subject ?? "Lesson")
-                                    .font(.headline)
-                                if let time = lesson.startLessonTime, let end = lesson.endLessonTime {
-                                    Text("\(time) - \(end)")
-                                        .font(.subheadline)
-                                }
-                                if let aud = lesson.auditories?.joined(separator: ", ") {
-                                    Text(aud)
-                                        .font(.caption)
-                                }
-                            }
-                            .padding(.vertical, 4)
-                        }
-                    }
-                }
-                .gesture(
-                    DragGesture()
-                        .onEnded { value in
-                            if value.translation.width < -40 {
-                                goToNextDay()
-                            } else if value.translation.width > 40 {
-                                goToPreviousDay()
-                            }
-                        }
-                )
-                Spacer()
-                HStack {
-                    Button(action: goToPreviousDay) {
-                        Image(systemName: "chevron.left")
-                            .font(.title2)
-                            .padding()
-                    }
-                    Spacer()
-                    Button(action: goToToday) {
-                        Text("Today")
+        ZStack {
+            Color.clear.ignoresSafeArea()
+            VStack {
+                if viewModel.isLoading {
+                    ProgressView("Loading schedule...")
+                } else if let error = viewModel.error, !error.isEmpty {
+                    VStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.red)
+                            .font(.largeTitle)
+                        Text("Error")
                             .font(.headline)
-                            .padding(.horizontal)
-                    }
-                    Spacer()
-                    Button(action: goToNextDay) {
-                        Image(systemName: "chevron.right")
-                            .font(.title2)
+                            .foregroundColor(.red)
+                        Text(error)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.red)
                             .padding()
                     }
+                } else if let schedule = viewModel.schedule, let week = viewModel.currentWeek {
+                    VStack(spacing: 8) {
+                        // Show selected date and weekday as a button
+                        Button(action: { isCalendarPresented = true }) {
+                            HStack(spacing: 6) {
+                                Text(selectedDateString)
+                                    .font(.headline)
+                                Image(systemName: "calendar")
+                                    .font(.subheadline)
+                            }
+                            .padding(.bottom, 2)
+                        }
+                        .buttonStyle(.plain)
+                        if let start = schedule.startDate, let end = schedule.endDate {
+                            Text("Schedule: \(start) – \(end)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        let lessons = lessons(for: schedule, week: week)
+                        if lessons.isEmpty {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                Text("No lessons for this day.")
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                Spacer()
+                            }
+                            Spacer()
+                        } else {
+                            List(lessons, id: \ .id) { lesson in
+                                HStack(alignment: .center) {
+                                    // Colored circle for lesson type
+                                    Circle()
+                                        .fill(colorForLessonType(lesson.lessonTypeAbbrev))
+                                        .frame(width: 16, height: 16)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        if let time = lesson.startLessonTime, let end = lesson.endLessonTime {
+                                            Text("\(time) - \(end)")
+                                                .font(.headline)
+                                        }
+                                        if let aud = lesson.auditories?.joined(separator: ", ") {
+                                            Text(aud)
+                                                .font(.subheadline)
+                                        }
+                                    }
+                                    Spacer()
+                                    Text(lesson.subject ?? "Lesson")
+                                        .font(.title3)
+                                        .bold()
+                                        .multilineTextAlignment(.trailing)
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+                    }
+                    Spacer()
+                    HStack {
+                        Button(action: goToPreviousDayAnimated) {
+                            Image(systemName: "chevron.left")
+                                .font(.title2)
+                                .padding()
+                        }
+                        Spacer()
+                        Button(action: goToTodayAnimated) {
+                            Text("Today")
+                                .font(.headline)
+                                .padding(.horizontal)
+                        }
+                        Spacer()
+                        Button(action: goToNextDayAnimated) {
+                            Image(systemName: "chevron.right")
+                                .font(.title2)
+                                .padding()
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+                } else {
+                    Text("No data available.")
+                        .foregroundColor(.secondary)
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 8)
-            } else {
-                Text("No data available.")
-                    .foregroundColor(.secondary)
             }
         }
+        .offset(x: swipeOffset)
+        .opacity(swipeOpacity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture()
+                .onEnded { value in
+                    if value.translation.width < -40 {
+                        goToNextDayAnimated()
+                    } else if value.translation.width > 40 {
+                        goToPreviousDayAnimated()
+                    }
+                }
+        )
         .onAppear {
             if let groupNumber = userSettings.selectedGroupNumber, !groupNumber.isEmpty {
                 print("[MainScheduleView] Loading schedule for groupNumber: \(groupNumber)")
@@ -149,6 +233,23 @@ struct MainScheduleView: View {
             }
         }
         .navigationTitle("Schedule")
+        .sheet(isPresented: $isCalendarPresented) {
+            VStack {
+                DatePicker(
+                    "Select Date",
+                    selection: $selectedDate,
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .padding()
+                Button("Done") {
+                    isCalendarPresented = false
+                }
+                .padding(.bottom)
+            }
+            .presentationDetents([.medium, .large])
+        }
     }
 }
 
