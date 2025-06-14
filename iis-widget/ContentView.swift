@@ -28,6 +28,7 @@ struct MainScheduleView: View {
     @State private var swipeOpacity: Double = 1.0
     @State private var isAnimatingSwipe = false
     @State private var isCalendarPresented = false
+    @State private var selectedSubgroup: Int = 0 // 0 = All, 1 = 1st, 2 = 2nd
     
     private let lessonTypeColors: [String: Color] = [
         "ЛК": .green,
@@ -56,7 +57,10 @@ struct MainScheduleView: View {
     // Computed property for lessons for selected day and current week
     private func lessons(for schedule: GroupSchedule, week: Int) -> [Lesson] {
         schedule.effectiveSchedules?[selectedWeekday]?.filter { lesson in
-            lesson.weekNumber?.contains(week) ?? false
+            let weekMatch = lesson.weekNumber?.contains(week) ?? false
+            let subgroup = lesson.numSubgroup ?? 0
+            let subgroupMatch = selectedSubgroup == 0 || subgroup == 0 || subgroup == selectedSubgroup
+            return weekMatch && subgroupMatch
         } ?? []
     }
     
@@ -128,6 +132,14 @@ struct MainScheduleView: View {
                     }
                 } else if let schedule = viewModel.schedule, let week = viewModel.currentWeek {
                     VStack(spacing: 8) {
+                        // Subgroup filter picker
+                        Picker("Subgroup", selection: $selectedSubgroup) {
+                            Text("All").tag(0)
+                            Text("1").tag(1)
+                            Text("2").tag(2)
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.bottom, 4)
                         // Show selected date and weekday as a button
                         Button(action: { isCalendarPresented = true }) {
                             HStack(spacing: 6) {
