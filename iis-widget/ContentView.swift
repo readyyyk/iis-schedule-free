@@ -59,25 +59,42 @@ struct MainScheduleView: View {
         dateFormatter.dateFormat = "EEEE – d MMMM yyyy"
         return dateFormatter.string(from: selectedDate).capitalized
     }
+    // Calculate the week number in the 4-week cycle for the selected date
+    private func weekNumberForSelectedDate(schedule: GroupSchedule) -> Int? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd.MM.yyyy"
+        guard let startDate = schedule.startDate, let start = dateFormatter.date(from: startDate) else { return nil }
+        let calendar = Calendar.current
+        let selected = calendar.startOfDay(for: selectedDate)
+        let startDay = calendar.startOfDay(for: start)
+        guard selected >= startDay else { return nil }
+        let days = calendar.dateComponents([.day], from: startDay, to: selected).day ?? 0
+        let week = (days / 7) % 4 + 1
+        return week
+    }
     // Computed property for lessons for selected day and current week
     private func lessons(for schedule: GroupSchedule, week: Int) -> [(Lesson, isExam: Bool)] {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd.MM.yyyy"
         let selectedDateString = dateFormatter.string(from: selectedDate)
+        let calendar = Calendar.current
         func parse(_ str: String?) -> Date? {
-            guard let str = str else { return nil }
-            return dateFormatter.date(from: str)
+            guard let str = str, let d = dateFormatter.date(from: str) else { return nil }
+            return calendar.startOfDay(for: d)
         }
-        let selected = dateFormatter.date(from: selectedDateString)
+        let selected = calendar.startOfDay(for: dateFormatter.date(from: selectedDateString) ?? selectedDate)
         let startDate = parse(schedule.startDate)
         let endDate = parse(schedule.endDate)
         let startExamsDate = parse(schedule.startExamsDate)
         let endExamsDate = parse(schedule.endExamsDate)
 
+        // Debug logging for date intervals
+        print("[DEBUG] selected: \(selected), startDate: \(String(describing: startDate)), endDate: \(String(describing: endDate)), startExamsDate: \(String(describing: startExamsDate)), endExamsDate: \(String(describing: endExamsDate))")
+
         // Helper: is selectedDate in [start, end] (inclusive)
         func inRange(_ start: Date?, _ end: Date?) -> Bool {
-            guard let s = start, let e = end, let d = selected else { return false }
-            return d >= s && d <= e
+            guard let s = start, let e = end else { return false }
+            return selected >= s && selected <= e
         }
 
         // Lessons from regular schedule
@@ -85,24 +102,35 @@ struct MainScheduleView: View {
             let weekMatch = lesson.weekNumber?.contains(week) ?? false
             let subgroup = lesson.numSubgroup ?? 0
             let subgroupMatch = selectedSubgroup == 0 || subgroup == 0 || subgroup == selectedSubgroup
-            return weekMatch && subgroupMatch
+            // Exclude exams/consultations from regular lessons
+            let isExamOrConsult = lesson.lessonTypeAbbrev == "Экзамен" || lesson.lessonTypeAbbrev == "Консультация"
+            let isExamByDate = lesson.dateLesson != nil
+            return weekMatch && subgroupMatch && !isExamOrConsult && !isExamByDate
         }.map { ($0, false) }
-        // Lessons from exams array for this day (match only by date and subgroup)
-        let exams = (schedule.exams ?? []).filter { lesson in
-            guard let date = lesson.dateLesson else { return false }
-            let subgroup = lesson.numSubgroup ?? 0
-            let subgroupMatch = selectedSubgroup == 0 || subgroup == 0 || subgroup == selectedSubgroup
-            return date == selectedDateString && subgroupMatch
-        }.map { ($0, true) }
-
-        if inRange(startDate, endDate) {
-            // Only show regular lessons
-            return regular.sorted { ($0.0.startLessonTime ?? "") < ($1.0.startLessonTime ?? "") }
-        } else if inRange(startExamsDate, endExamsDate) {
-            // Only show exams/consultations
-            return exams.sorted { ($0.0.startLessonTime ?? "") < ($1.0.startLessonTime ?? "") }
+        // Only show exams/consultations if in exams interval
+        let exams: [(Lesson, Bool)]
+        if inRange(startExamsDate, endExamsDate) {
+            exams = (schedule.exams ?? []).filter { lesson in
+                guard let date = lesson.dateLesson else { return false }
+                let subgroup = lesson.numSubgroup ?? 0
+                let subgroupMatch = selectedSubgroup == 0 || subgroup == 0 || subgroup == selectedSubgroup
+                return date == selectedDateString && subgroupMatch
+            }.map { ($0, true) }
         } else {
-            // Out of schedule range
+            exams = []
+        }
+
+        let inExams = inRange(startExamsDate, endExamsDate)
+        let inSemester = inRange(startDate, endDate) && !inExams
+        print("[DEBUG] inExams: \(inExams), inSemester: \(inSemester)")
+        if inExams {
+            print("[DEBUG] Returning exams: \(exams.map { $0.0.subject ?? "?" })")
+            return exams.sorted { ($0.0.startLessonTime ?? "") < ($1.0.startLessonTime ?? "") }
+        } else if inSemester {
+            print("[DEBUG] Returning regular: \(regular.map { $0.0.subject ?? "?" })")
+            return regular.sorted { ($0.0.startLessonTime ?? "") < ($1.0.startLessonTime ?? "") }
+        } else {
+            print("[DEBUG] Returning empty")
             return []
         }
     }
@@ -179,7 +207,8 @@ struct MainScheduleView: View {
                             .foregroundColor(.red)
                             .padding()
                     }
-                } else if let schedule = viewModel.schedule, let week = viewModel.currentWeek {
+                } else if let schedule = viewModel.schedule {
+                    let week = weekNumberForSelectedDate(schedule: schedule)
                     VStack(spacing: 8) {
                         // Subgroup filter picker
                         Picker("Subgroup", selection: Binding(
@@ -206,13 +235,56 @@ struct MainScheduleView: View {
                             .padding(.bottom, 2)
                         }
                         .buttonStyle(.plain)
-                        if let start = schedule.startDate, let end = schedule.endDate {
-                            Text("Schedule: \(start) – \(end)")
+                        if let week = week {
+                            Text("Week: \(week)")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                        }
-                        let lessons = lessons(for: schedule, week: week)
-                        if lessons.isEmpty {
+                            let lessons = lessons(for: schedule, week: week)
+                            if lessons.isEmpty {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    Text("No lessons for this day.")
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                    Spacer()
+                                }
+                                Spacer()
+                            } else {
+                                List(lessons, id: \ .0.id) { (lesson, isExam) in
+                                    Button(action: {
+                                        selectedLesson = lesson
+                                        isLessonSheetPresented = true
+                                    }) {
+                                        HStack(alignment: .center) {
+                                            // Colored circle for lesson type
+                                            Circle()
+                                                .fill(colorForLessonType(lesson.lessonTypeAbbrev))
+                                                .frame(width: 16, height: 16)
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                if let time = lesson.startLessonTime, let end = lesson.endLessonTime {
+                                                    Text("\(time) - \(end)")
+                                                        .font(.headline)
+                                                }
+                                                if let aud = lesson.auditories?.joined(separator: ", ") {
+                                                    Text(aud)
+                                                        .font(.subheadline)
+                                                }
+                                            }
+                                            Spacer()
+                                            Text(lesson.subject ?? "Lesson")
+                                                .font(.title3)
+                                                .bold()
+                                                .multilineTextAlignment(.trailing)
+                                        }
+                                        .padding(.vertical, 4)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                                .offset(x: swipeOffset)
+                                .opacity(swipeOpacity)
+                            }
+                        } else {
                             Spacer()
                             HStack {
                                 Spacer()
@@ -222,39 +294,6 @@ struct MainScheduleView: View {
                                 Spacer()
                             }
                             Spacer()
-                        } else {
-                            List(lessons, id: \ .0.id) { (lesson, isExam) in
-                                Button(action: {
-                                    selectedLesson = lesson
-                                    isLessonSheetPresented = true
-                                }) {
-                                    HStack(alignment: .center) {
-                                        // Colored circle for lesson type
-                                        Circle()
-                                            .fill(colorForLessonType(lesson.lessonTypeAbbrev))
-                                            .frame(width: 16, height: 16)
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            if let time = lesson.startLessonTime, let end = lesson.endLessonTime {
-                                                Text("\(time) - \(end)")
-                                                    .font(.headline)
-                                            }
-                                            if let aud = lesson.auditories?.joined(separator: ", ") {
-                                                Text(aud)
-                                                    .font(.subheadline)
-                                            }
-                                        }
-                                        Spacer()
-                                        Text(lesson.subject ?? "Lesson")
-                                            .font(.title3)
-                                            .bold()
-                                            .multilineTextAlignment(.trailing)
-                                    }
-                                    .padding(.vertical, 4)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            .offset(x: swipeOffset)
-                            .opacity(swipeOpacity)
                         }
                     }
                     Spacer()
