@@ -33,7 +33,6 @@ struct MainScheduleView: View {
     @State private var isCalendarPresented = false
     @State private var selectedSubgroup: Int = 0 // 0 = All, 1 = 1st, 2 = 2nd
     @State private var selectedLesson: Lesson? = nil
-    @State private var isLessonSheetPresented: Bool = false
     @State private var isSettingsPresented = false
     // Persist selectedSubgroup in UserDefaults
     private let subgroupKey = "selectedSubgroup"
@@ -250,7 +249,6 @@ struct MainScheduleView: View {
                                 List(lessons, id: \ .0.id) { (lesson, isExam) in
                                     Button(action: {
                                         selectedLesson = lesson
-                                        isLessonSheetPresented = true
                                     }) {
                                         HStack(alignment: .center) {
                                             // Colored circle for lesson type
@@ -359,10 +357,8 @@ struct MainScheduleView: View {
             }
             .presentationDetents([.medium, .large])
         }
-        .sheet(isPresented: $isLessonSheetPresented) {
-            if let lesson = selectedLesson {
-                LessonDetailView(lesson: lesson)
-            }
+        .sheet(item: $selectedLesson) { lesson in
+            LessonDetailView(lesson: lesson)
         }
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView()
