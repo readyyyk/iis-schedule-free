@@ -29,6 +29,10 @@ struct MainScheduleView: View {
     @State private var isAnimatingSwipe = false
     @State private var isCalendarPresented = false
     @State private var selectedSubgroup: Int = 0 // 0 = All, 1 = 1st, 2 = 2nd
+    @State private var selectedLesson: Lesson? = nil
+    @State private var isLessonSheetPresented: Bool = false
+    // Persist selectedSubgroup in UserDefaults
+    private let subgroupKey = "selectedSubgroup"
     
     private let lessonTypeColors: [String: Color] = [
         "ЛК": .green,
@@ -111,6 +115,12 @@ struct MainScheduleView: View {
         selectedDate = Date()
     }
     
+    init() {
+        if let saved = UserDefaults.standard.value(forKey: subgroupKey) as? Int {
+            _selectedSubgroup = State(initialValue: saved)
+        }
+    }
+    
     var body: some View {
         ZStack {
             Color.clear.ignoresSafeArea()
@@ -133,7 +143,13 @@ struct MainScheduleView: View {
                 } else if let schedule = viewModel.schedule, let week = viewModel.currentWeek {
                     VStack(spacing: 8) {
                         // Subgroup filter picker
-                        Picker("Subgroup", selection: $selectedSubgroup) {
+                        Picker("Subgroup", selection: Binding(
+                            get: { selectedSubgroup },
+                            set: { newValue in
+                                selectedSubgroup = newValue
+                                UserDefaults.standard.set(newValue, forKey: subgroupKey)
+                            })
+                        ) {
                             Text("All").tag(0)
                             Text("1").tag(1)
                             Text("2").tag(2)
@@ -169,29 +185,37 @@ struct MainScheduleView: View {
                             Spacer()
                         } else {
                             List(lessons, id: \ .id) { lesson in
-                                HStack(alignment: .center) {
-                                    // Colored circle for lesson type
-                                    Circle()
-                                        .fill(colorForLessonType(lesson.lessonTypeAbbrev))
-                                        .frame(width: 16, height: 16)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        if let time = lesson.startLessonTime, let end = lesson.endLessonTime {
-                                            Text("\(time) - \(end)")
-                                                .font(.headline)
+                                Button(action: {
+                                    selectedLesson = lesson
+                                    isLessonSheetPresented = true
+                                }) {
+                                    HStack(alignment: .center) {
+                                        // Colored circle for lesson type
+                                        Circle()
+                                            .fill(colorForLessonType(lesson.lessonTypeAbbrev))
+                                            .frame(width: 16, height: 16)
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            if let time = lesson.startLessonTime, let end = lesson.endLessonTime {
+                                                Text("\(time) - \(end)")
+                                                    .font(.headline)
+                                            }
+                                            if let aud = lesson.auditories?.joined(separator: ", ") {
+                                                Text(aud)
+                                                    .font(.subheadline)
+                                            }
                                         }
-                                        if let aud = lesson.auditories?.joined(separator: ", ") {
-                                            Text(aud)
-                                                .font(.subheadline)
-                                        }
+                                        Spacer()
+                                        Text(lesson.subject ?? "Lesson")
+                                            .font(.title3)
+                                            .bold()
+                                            .multilineTextAlignment(.trailing)
                                     }
-                                    Spacer()
-                                    Text(lesson.subject ?? "Lesson")
-                                        .font(.title3)
-                                        .bold()
-                                        .multilineTextAlignment(.trailing)
+                                    .padding(.vertical, 4)
                                 }
-                                .padding(.vertical, 4)
+                                .buttonStyle(.plain)
                             }
+                            .offset(x: swipeOffset)
+                            .opacity(swipeOpacity)
                         }
                     }
                     Spacer()
@@ -222,8 +246,6 @@ struct MainScheduleView: View {
                 }
             }
         }
-        .offset(x: swipeOffset)
-        .opacity(swipeOpacity)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(Rectangle())
         .gesture(
@@ -262,6 +284,11 @@ struct MainScheduleView: View {
             }
             .presentationDetents([.medium, .large])
         }
+        .sheet(isPresented: $isLessonSheetPresented) {
+            if let lesson = selectedLesson {
+                LessonDetailView(lesson: lesson)
+            }
+        }
     }
 }
 
@@ -275,4 +302,50 @@ private func weekdayName(_ date: Date) -> String {
 
 #Preview {
     ContentView()
+}
+
+// MARK: - Lesson Detail View
+struct LessonDetailView: View {
+    let lesson: Lesson
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text(lesson.subject ?? "Lesson")
+                    .font(.title)
+                    .bold()
+                if let type = lesson.lessonTypeAbbrev {
+                    Text("Type: \(type)")
+                        .font(.headline)
+                }
+                if let time = lesson.startLessonTime, let end = lesson.endLessonTime {
+                    Text("Time: \(time) - \(end)")
+                }
+                if let aud = lesson.auditories?.joined(separator: ", ") {
+                    Text("Auditories: \(aud)")
+                }
+                if let employees = lesson.employees, !employees.isEmpty {
+                    let names = employees.map(employeeName).joined(separator: ", ")
+                    Text("Teachers: \(names)")
+                }
+                if let note = lesson.note, !note.isEmpty {
+                    Text("Note: \(note)")
+                }
+                if let subgroup = lesson.numSubgroup {
+                    Text("Subgroup: \(subgroup == 0 ? "Both" : String(subgroup))")
+                }
+                if let weeks = lesson.weekNumber {
+                    Text("Weeks: \(weeks.map { String($0) }.joined(separator: ", "))")
+                }
+            }
+            .padding()
+        }
+    }
+}
+
+// Helper to format employee name
+private func employeeName(_ employee: Employee) -> String {
+    let last = employee.lastName ?? ""
+    let first = employee.firstName ?? ""
+    let middle = employee.middleName ?? ""
+    return ([last, first, middle].filter { !$0.isEmpty }).joined(separator: " ")
 }
