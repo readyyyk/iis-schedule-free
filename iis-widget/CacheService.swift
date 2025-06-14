@@ -18,9 +18,13 @@ class CacheService {
     
     // MARK: - Schedule
     func saveSchedule(_ schedule: GroupSchedule) {
-        guard let data = try? JSONEncoder().encode(schedule) else { return }
+        guard let data = try? JSONEncoder().encode(schedule) else {
+            print("[CacheService] Failed to encode schedule")
+            return
+        }
         userDefaults?.set(data, forKey: scheduleKey)
         userDefaults?.set(Date(), forKey: lastFetchDateKey)
+        print("[CacheService] Saved schedule to App Group. Data size: \(data.count) bytes")
     }
     
     func loadSchedule() -> GroupSchedule? {

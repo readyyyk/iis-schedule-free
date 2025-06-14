@@ -6,14 +6,76 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		F759594C2DFDAB7B003C08BF /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F759594B2DFDAB7B003C08BF /* WidgetKit.framework */; };
+		F759594E2DFDAB7B003C08BF /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F759594D2DFDAB7B003C08BF /* SwiftUI.framework */; };
+		F759595F2DFDAB7D003C08BF /* HomeScheduleWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F75959492DFDAB7B003C08BF /* HomeScheduleWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F759595D2DFDAB7D003C08BF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F72213AB2DFD721C009AA2C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F75959482DFDAB7B003C08BF;
+			remoteInfo = HomeScheduleWidgetExtensionExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F75959642DFDAB7D003C08BF /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				F759595F2DFDAB7D003C08BF /* HomeScheduleWidgetExtensionExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		F72213B32DFD721C009AA2C9 /* iis-widget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iis-widget.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F75959492DFDAB7B003C08BF /* HomeScheduleWidgetExtensionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HomeScheduleWidgetExtensionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F759594B2DFDAB7B003C08BF /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		F759594D2DFDAB7B003C08BF /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		F75959652DFDACE9003C08BF /* HomeScheduleWidgetExtensionExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HomeScheduleWidgetExtensionExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F75959602DFDAB7D003C08BF /* Exceptions for "HomeScheduleWidgetExtension" folder in "HomeScheduleWidgetExtensionExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F75959482DFDAB7B003C08BF /* HomeScheduleWidgetExtensionExtension */;
+		};
+		F75959692DFDB0AC003C08BF /* Exceptions for "iis-widget" folder in "HomeScheduleWidgetExtensionExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models.swift,
+			);
+			target = F75959482DFDAB7B003C08BF /* HomeScheduleWidgetExtensionExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F72213B52DFD721C009AA2C9 /* iis-widget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F75959692DFDB0AC003C08BF /* Exceptions for "iis-widget" folder in "HomeScheduleWidgetExtensionExtension" target */,
+			);
 			path = "iis-widget";
+			sourceTree = "<group>";
+		};
+		F759594F2DFDAB7B003C08BF /* HomeScheduleWidgetExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F75959602DFDAB7D003C08BF /* Exceptions for "HomeScheduleWidgetExtension" folder in "HomeScheduleWidgetExtensionExtension" target */,
+			);
+			path = HomeScheduleWidgetExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -26,13 +88,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F75959462DFDAB7B003C08BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F759594E2DFDAB7B003C08BF /* SwiftUI.framework in Frameworks */,
+				F759594C2DFDAB7B003C08BF /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		F72213AA2DFD721C009AA2C9 = {
 			isa = PBXGroup;
 			children = (
+				F75959652DFDACE9003C08BF /* HomeScheduleWidgetExtensionExtension.entitlements */,
 				F72213B52DFD721C009AA2C9 /* iis-widget */,
+				F759594F2DFDAB7B003C08BF /* HomeScheduleWidgetExtension */,
+				F759594A2DFDAB7B003C08BF /* Frameworks */,
 				F72213B42DFD721C009AA2C9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,8 +115,18 @@
 			isa = PBXGroup;
 			children = (
 				F72213B32DFD721C009AA2C9 /* iis-widget.app */,
+				F75959492DFDAB7B003C08BF /* HomeScheduleWidgetExtensionExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F759594A2DFDAB7B003C08BF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F759594B2DFDAB7B003C08BF /* WidgetKit.framework */,
+				F759594D2DFDAB7B003C08BF /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -55,10 +139,12 @@
 				F72213AF2DFD721C009AA2C9 /* Sources */,
 				F72213B02DFD721C009AA2C9 /* Frameworks */,
 				F72213B12DFD721C009AA2C9 /* Resources */,
+				F75959642DFDAB7D003C08BF /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				F759595E2DFDAB7D003C08BF /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				F72213B52DFD721C009AA2C9 /* iis-widget */,
@@ -69,6 +155,28 @@
 			productName = "iis-widget";
 			productReference = F72213B32DFD721C009AA2C9 /* iis-widget.app */;
 			productType = "com.apple.product-type.application";
+		};
+		F75959482DFDAB7B003C08BF /* HomeScheduleWidgetExtensionExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F75959612DFDAB7D003C08BF /* Build configuration list for PBXNativeTarget "HomeScheduleWidgetExtensionExtension" */;
+			buildPhases = (
+				F75959452DFDAB7B003C08BF /* Sources */,
+				F75959462DFDAB7B003C08BF /* Frameworks */,
+				F75959472DFDAB7B003C08BF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F759594F2DFDAB7B003C08BF /* HomeScheduleWidgetExtension */,
+			);
+			name = HomeScheduleWidgetExtensionExtension;
+			packageProductDependencies = (
+			);
+			productName = HomeScheduleWidgetExtensionExtension;
+			productReference = F75959492DFDAB7B003C08BF /* HomeScheduleWidgetExtensionExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -81,6 +189,9 @@
 				LastUpgradeCheck = 1630;
 				TargetAttributes = {
 					F72213B22DFD721C009AA2C9 = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					F75959482DFDAB7B003C08BF = {
 						CreatedOnToolsVersion = 16.3;
 					};
 				};
@@ -100,12 +211,20 @@
 			projectRoot = "";
 			targets = (
 				F72213B22DFD721C009AA2C9 /* iis-widget */,
+				F75959482DFDAB7B003C08BF /* HomeScheduleWidgetExtensionExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		F72213B12DFD721C009AA2C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F75959472DFDAB7B003C08BF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +241,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F75959452DFDAB7B003C08BF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F759595E2DFDAB7D003C08BF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F75959482DFDAB7B003C08BF /* HomeScheduleWidgetExtensionExtension */;
+			targetProxy = F759595D2DFDAB7D003C08BF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		F72213BC2DFD721D009AA2C9 /* Debug */ = {
@@ -251,6 +385,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "iis-widget/iis-widget.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = M46M6A8AK5;
@@ -279,6 +414,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "iis-widget/iis-widget.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = M46M6A8AK5;
@@ -302,6 +438,62 @@
 			};
 			name = Release;
 		};
+		F75959622DFDAB7D003C08BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = HomeScheduleWidgetExtensionExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M46M6A8AK5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HomeScheduleWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HomeScheduleWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "todooos.inc.iis-widget.HomeScheduleWidgetExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F75959632DFDAB7D003C08BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = HomeScheduleWidgetExtensionExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = M46M6A8AK5;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HomeScheduleWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HomeScheduleWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "todooos.inc.iis-widget.HomeScheduleWidgetExtension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -319,6 +511,15 @@
 			buildConfigurations = (
 				F72213BF2DFD721D009AA2C9 /* Debug */,
 				F72213C02DFD721D009AA2C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F75959612DFDAB7D003C08BF /* Build configuration list for PBXNativeTarget "HomeScheduleWidgetExtensionExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F75959622DFDAB7D003C08BF /* Debug */,
+				F75959632DFDAB7D003C08BF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
