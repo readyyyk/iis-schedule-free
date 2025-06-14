@@ -15,9 +15,6 @@ class NetworkService {
         let url = baseURL.appendingPathComponent("student-groups")
         print("[NetworkService] fetchGroups URL: \(url)")
         return URLSession.shared.dataTaskPublisher(for: url)
-            .handleEvents(receiveOutput: { output in
-                print("[NetworkService] fetchGroups raw data: \(String(data: output.data, encoding: .utf8) ?? "<binary>")")
-            })
             .map { $0.data }
             .decode(type: [Group].self, decoder: decoder)
             .timeout(10, scheduler: DispatchQueue.main, customError: { URLError(.timedOut) })
@@ -35,9 +32,6 @@ class NetworkService {
         }
         print("[NetworkService] fetchGroupSchedule URL: \(url)")
         return URLSession.shared.dataTaskPublisher(for: url)
-            .handleEvents(receiveOutput: { output in
-                print("[NetworkService] fetchGroupSchedule raw data: \(String(data: output.data, encoding: .utf8) ?? "<binary>")")
-            })
             .map { $0.data }
             .decode(type: GroupSchedule.self, decoder: decoder)
             .timeout(10, scheduler: DispatchQueue.main, customError: { URLError(.timedOut) })
@@ -51,9 +45,6 @@ class NetworkService {
         let url = baseURL.appendingPathComponent("schedule/current-week")
         print("[NetworkService] fetchCurrentWeek URL: \(url)")
         return URLSession.shared.dataTaskPublisher(for: url)
-            .handleEvents(receiveOutput: { output in
-                print("[NetworkService] fetchCurrentWeek raw data: \(String(data: output.data, encoding: .utf8) ?? "<binary>")")
-            })
             .map { $0.data }
             .tryMap { data in
                 // The API returns just a number, not JSON

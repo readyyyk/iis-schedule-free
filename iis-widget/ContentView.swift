@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import Foundation
 
 struct ContentView: View {
     @ObservedObject var userSettings = UserSettings.shared
@@ -36,8 +37,8 @@ struct MainScheduleView: View {
     
     private let lessonTypeColors: [String: Color] = [
         "ЛК": .green,
-        "ЛР": .orange,
-        "ПЗ": .red,
+        "ПЗ": .orange,
+        "ЛР": .red,
         "Консультация": .purple,
         "Экзамен": .red
     ]
@@ -59,13 +60,51 @@ struct MainScheduleView: View {
         return dateFormatter.string(from: selectedDate).capitalized
     }
     // Computed property for lessons for selected day and current week
-    private func lessons(for schedule: GroupSchedule, week: Int) -> [Lesson] {
-        schedule.effectiveSchedules?[selectedWeekday]?.filter { lesson in
+    private func lessons(for schedule: GroupSchedule, week: Int) -> [(Lesson, isExam: Bool)] {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd.MM.yyyy"
+        let selectedDateString = dateFormatter.string(from: selectedDate)
+        func parse(_ str: String?) -> Date? {
+            guard let str = str else { return nil }
+            return dateFormatter.date(from: str)
+        }
+        let selected = dateFormatter.date(from: selectedDateString)
+        let startDate = parse(schedule.startDate)
+        let endDate = parse(schedule.endDate)
+        let startExamsDate = parse(schedule.startExamsDate)
+        let endExamsDate = parse(schedule.endExamsDate)
+
+        // Helper: is selectedDate in [start, end] (inclusive)
+        func inRange(_ start: Date?, _ end: Date?) -> Bool {
+            guard let s = start, let e = end, let d = selected else { return false }
+            return d >= s && d <= e
+        }
+
+        // Lessons from regular schedule
+        let regular = (schedule.effectiveSchedules?[selectedWeekday] ?? []).filter { lesson in
             let weekMatch = lesson.weekNumber?.contains(week) ?? false
             let subgroup = lesson.numSubgroup ?? 0
             let subgroupMatch = selectedSubgroup == 0 || subgroup == 0 || subgroup == selectedSubgroup
             return weekMatch && subgroupMatch
-        } ?? []
+        }.map { ($0, false) }
+        // Lessons from exams array for this day (match only by date and subgroup)
+        let exams = (schedule.exams ?? []).filter { lesson in
+            guard let date = lesson.dateLesson else { return false }
+            let subgroup = lesson.numSubgroup ?? 0
+            let subgroupMatch = selectedSubgroup == 0 || subgroup == 0 || subgroup == selectedSubgroup
+            return date == selectedDateString && subgroupMatch
+        }.map { ($0, true) }
+
+        if inRange(startDate, endDate) {
+            // Only show regular lessons
+            return regular.sorted { ($0.0.startLessonTime ?? "") < ($1.0.startLessonTime ?? "") }
+        } else if inRange(startExamsDate, endExamsDate) {
+            // Only show exams/consultations
+            return exams.sorted { ($0.0.startLessonTime ?? "") < ($1.0.startLessonTime ?? "") }
+        } else {
+            // Out of schedule range
+            return []
+        }
     }
     
     private func animateSwipe(to direction: Int, completion: @escaping () -> Void) {
@@ -184,7 +223,7 @@ struct MainScheduleView: View {
                             }
                             Spacer()
                         } else {
-                            List(lessons, id: \ .id) { lesson in
+                            List(lessons, id: \ .0.id) { (lesson, isExam) in
                                 Button(action: {
                                     selectedLesson = lesson
                                     isLessonSheetPresented = true
