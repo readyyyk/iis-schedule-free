@@ -36,18 +36,57 @@ struct ScheduleTimelineProvider: TimelineProvider {
             print("[Widget] No schedule data found in App Group.")
             return []
         }
-        // For testing: always use June 7, 2025 as 'today'
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy"
-        let today = dateFormatter.date(from: "02.06.2025")!
-
+        let today = Date()
+        let todayString = dateFormatter.string(from: today)
+        let calendar = Calendar.current
         let weekday = weekdayName(today)
         let week = calculateWeekNumber(for: today, schedule: schedule)
-        let lessons = (schedule.effectiveSchedules?[weekday] ?? []).filter { lesson in
-            lesson.weekNumber?.contains(week) ?? false
+        // Parse date helpers
+        func parse(_ str: String?) -> Date? {
+            guard let str = str, let d = dateFormatter.date(from: str) else { return nil }
+            return calendar.startOfDay(for: d)
         }
-        print("[Widget] Loaded \(lessons.count) lessons for today from App Group.")
-        return lessons
+        let selected = calendar.startOfDay(for: today)
+        let startDate = parse(schedule.startDate)
+        let endDate = parse(schedule.endDate)
+        let startExamsDate = parse(schedule.startExamsDate)
+        let endExamsDate = parse(schedule.endExamsDate)
+        // Helper: is selectedDate in [start, end] (inclusive)
+        func inRange(_ start: Date?, _ end: Date?) -> Bool {
+            guard let s = start, let e = end else { return false }
+            return selected >= s && selected <= e
+        }
+        // Regular lessons (exclude exams/consultations)
+        let regular = (schedule.effectiveSchedules?[weekday] ?? []).filter { lesson in
+            let weekMatch = lesson.weekNumber?.contains(week) ?? false
+            // Exclude exams/consultations from regular lessons
+            let isExamOrConsult = lesson.lessonTypeAbbrev == "Экзамен" || lesson.lessonTypeAbbrev == "Консультация"
+            let isExamByDate = lesson.dateLesson != nil
+            return weekMatch && !isExamOrConsult && !isExamByDate
+        }
+        // Exams/consultations for today
+        let exams: [Lesson]
+        if inRange(startExamsDate, endExamsDate) {
+            exams = (schedule.exams ?? []).filter { lesson in
+                guard let date = lesson.dateLesson else { return false }
+                return date == todayString
+            }
+        } else {
+            exams = []
+        }
+        let inExams = inRange(startExamsDate, endExamsDate)
+        let inSemester = inRange(startDate, endDate) && !inExams
+        let result: [Lesson]
+        if inExams {
+            result = exams.sorted { ($0.startLessonTime ?? "") < ($1.startLessonTime ?? "") }
+        } else if inSemester {
+            result = regular.sorted { ($0.startLessonTime ?? "") < ($1.startLessonTime ?? "") }
+        } else {
+            result = []
+        }
+        print("[Widget] Loaded \(result.count) lessons for today from App Group.")
+        return result
     }
 
     func weekdayName(_ date: Date) -> String {

@@ -11,9 +11,6 @@ import SwiftUI
 @main   
 struct HomeScheduleWidgetExtensionBundle: WidgetBundle {
     var body: some Widget {
-        HomeScheduleWidgetExtension()
-        HomeScheduleWidgetExtensionControl()
-        HomeScheduleWidgetExtensionLiveActivity()
         ScheduleWidget()
     }
 }
