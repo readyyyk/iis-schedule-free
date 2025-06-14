@@ -16,7 +16,9 @@ struct ContentView: View {
         if userSettings.selectedGroupNumber == nil {
             GroupSelectionView()
         } else {
-            MainScheduleView()
+            NavigationView {
+                MainScheduleView()
+            }
         }
     }
 }
@@ -32,6 +34,7 @@ struct MainScheduleView: View {
     @State private var selectedSubgroup: Int = 0 // 0 = All, 1 = 1st, 2 = 2nd
     @State private var selectedLesson: Lesson? = nil
     @State private var isLessonSheetPresented: Bool = false
+    @State private var isSettingsPresented = false
     // Persist selectedSubgroup in UserDefaults
     private let subgroupKey = "selectedSubgroup"
     
@@ -88,9 +91,6 @@ struct MainScheduleView: View {
         let startExamsDate = parse(schedule.startExamsDate)
         let endExamsDate = parse(schedule.endExamsDate)
 
-        // Debug logging for date intervals
-        print("[DEBUG] selected: \(selected), startDate: \(String(describing: startDate)), endDate: \(String(describing: endDate)), startExamsDate: \(String(describing: startExamsDate)), endExamsDate: \(String(describing: endExamsDate))")
-
         // Helper: is selectedDate in [start, end] (inclusive)
         func inRange(_ start: Date?, _ end: Date?) -> Bool {
             guard let s = start, let e = end else { return false }
@@ -122,15 +122,11 @@ struct MainScheduleView: View {
 
         let inExams = inRange(startExamsDate, endExamsDate)
         let inSemester = inRange(startDate, endDate) && !inExams
-        print("[DEBUG] inExams: \(inExams), inSemester: \(inSemester)")
         if inExams {
-            print("[DEBUG] Returning exams: \(exams.map { $0.0.subject ?? "?" })")
             return exams.sorted { ($0.0.startLessonTime ?? "") < ($1.0.startLessonTime ?? "") }
         } else if inSemester {
-            print("[DEBUG] Returning regular: \(regular.map { $0.0.subject ?? "?" })")
             return regular.sorted { ($0.0.startLessonTime ?? "") < ($1.0.startLessonTime ?? "") }
         } else {
-            print("[DEBUG] Returning empty")
             return []
         }
     }
@@ -345,6 +341,7 @@ struct MainScheduleView: View {
             }
         }
         .navigationTitle("Schedule")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isCalendarPresented) {
             VStack {
                 DatePicker(
@@ -365,6 +362,17 @@ struct MainScheduleView: View {
         .sheet(isPresented: $isLessonSheetPresented) {
             if let lesson = selectedLesson {
                 LessonDetailView(lesson: lesson)
+            }
+        }
+        .sheet(isPresented: $isSettingsPresented) {
+            SettingsView()
+                .presentationDetents([.medium, .large])
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { isSettingsPresented = true }) {
+                    Image(systemName: "gearshape")
+                }
             }
         }
     }
@@ -426,4 +434,39 @@ private func employeeName(_ employee: Employee) -> String {
     let first = employee.firstName ?? ""
     let middle = employee.middleName ?? ""
     return ([last, first, middle].filter { !$0.isEmpty }).joined(separator: " ")
+}
+
+struct SettingsView: View {
+    @ObservedObject var userSettings = UserSettings.shared
+    @State private var isGroupSelectionPresented = false
+    @ObservedObject private var viewModel = ScheduleViewModel()
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Current Group")) {
+                    HStack {
+                        Text(userSettings.selectedGroupNumber ?? "-")
+                        Spacer()
+                        Button("Change") {
+                            isGroupSelectionPresented = true
+                        }
+                    }
+                }
+                Section {
+                    Button(action: {
+                        if let group = userSettings.selectedGroupNumber {
+                            viewModel.loadSchedule(for: group)
+                        }
+                    }) {
+                        Text("Refresh Schedule")
+                    }
+                }
+            }
+            .navigationTitle("Settings")
+            .sheet(isPresented: $isGroupSelectionPresented) {
+                GroupSelectionView()
+            }
+        }
+    }
 }

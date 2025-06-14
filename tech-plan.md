@@ -2,6 +2,8 @@
 
 ✅ Tasks are checked off as they are completed in code.
 
+**Status: Core app features (API, caching, robust schedule logic, minimal UI, error handling) are complete. Widgets and background updates are not yet implemented.**
+
 This document breaks down the app into features, each with actionable tasks, important notes ("Dont forget"), and manual check steps. Use it to:
 - Track development progress by checking off tasks.
 - Reference important implementation details and reminders.
@@ -19,7 +21,7 @@ This document breaks down the app into features, each with actionable tasks, imp
     - Get all groups
     - Get current week
 3. [x] Define Codable data models for all relevant API responses
-4. [ ] Implement error handling and retries
+4. [x] Implement error handling and retries
 
 ### Dont forget
 
@@ -39,10 +41,10 @@ This document breaks down the app into features, each with actionable tasks, imp
 
 ### Tasks
 
-1. [ ] Set up App Group container for shared storage
-2. [ ] Implement caching of schedule and current week data
-3. [ ] Invalidate cache on schedule update, user request, or week change
-4. [ ] Store last fetch date and week number
+1. [x] Set up App Group container for shared storage
+2. [x] Implement caching of schedule and current week data
+3. [x] Invalidate cache on schedule update, user request, or week change
+4. [x] Store last fetch date and week number
 
 ### Dont forget
 
@@ -64,11 +66,11 @@ This document breaks down the app into features, each with actionable tasks, imp
 
 1. [x] Create onboarding flow for group selection
     - [x] Add full-text search for group selection (search bar, case-insensitive)
-2. [ ] Implement main screen: today's schedule
-3. [ ] Add week navigation (4-week cycle)
-4. [ ] Add settings screen (change group, manual refresh)
-5. [ ] Implement error and empty states
-6. [ ] Support only dark mode
+2. [x] Implement main screen: today's schedule
+3. [x] Add week navigation (4-week cycle)
+4. [ ] Implement settings screen (change group, manual refresh)
+5. [x] Implement error and empty states
+6. [x] Support only dark mode
 
 ### Dont forget
 
