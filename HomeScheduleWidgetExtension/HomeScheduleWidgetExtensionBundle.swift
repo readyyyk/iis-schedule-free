@@ -12,5 +12,6 @@ import SwiftUI
 struct HomeScheduleWidgetExtensionBundle: WidgetBundle {
     var body: some Widget {
         ScheduleWidget()
+        NearestLessonLockScreenWidget()
     }
 }

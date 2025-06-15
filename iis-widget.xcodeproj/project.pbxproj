@@ -78,6 +78,11 @@
 			path = HomeScheduleWidgetExtension;
 			sourceTree = "<group>";
 		};
+		F75959712DFE1B8C003C08BF /* NearestLessonLockScreenWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = NearestLessonLockScreenWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +111,7 @@
 				F75959652DFDACE9003C08BF /* HomeScheduleWidgetExtensionExtension.entitlements */,
 				F72213B52DFD721C009AA2C9 /* iis-widget */,
 				F759594F2DFDAB7B003C08BF /* HomeScheduleWidgetExtension */,
+				F75959712DFE1B8C003C08BF /* NearestLessonLockScreenWidget */,
 				F759594A2DFDAB7B003C08BF /* Frameworks */,
 				F72213B42DFD721C009AA2C9 /* Products */,
 			);
