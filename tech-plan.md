@@ -2,8 +2,6 @@
 
 ✅ Tasks are checked off as they are completed in code.
 
-**Status: Core app features (API, caching, robust schedule logic, minimal UI, error handling) are complete. Widgets and background updates are not yet implemented.**
-
 This document breaks down the app into features, each with actionable tasks, important notes ("Dont forget"), and manual check steps. Use it to:
 - Track development progress by checking off tasks.
 - Reference important implementation details and reminders.
@@ -68,7 +66,7 @@ This document breaks down the app into features, each with actionable tasks, imp
     - [x] Add full-text search for group selection (search bar, case-insensitive)
 2. [x] Implement main screen: today's schedule
 3. [x] Add week navigation (4-week cycle)
-4. [ ] Implement settings screen (change group, manual refresh)
+4. [x] Implement settings screen (change group, manual refresh)
 5. [x] Implement error and empty states
 6. [x] Support only dark mode
 
@@ -90,11 +88,11 @@ This document breaks down the app into features, each with actionable tasks, imp
 
 ### Tasks
 
-1. [ ] Set up WidgetKit extension
-2. [ ] Implement timeline provider for next lesson logic
-3. [ ] Display next lesson info (subject, time, location)
-4. [ ] Use App Group to read cached schedule
-5. [ ] Handle widget updates as time passes and week changes
+1. [x] Set up WidgetKit extension
+2. [x] Implement timeline provider for next lesson logic
+3. [x] Display next lesson info (subject, time, location)
+4. [x] Use App Group to read cached schedule
+5. [x] Handle widget updates as time passes and week changes
 
 ### Dont forget
 
@@ -114,10 +112,10 @@ This document breaks down the app into features, each with actionable tasks, imp
 
 ### Tasks
 
-1. [ ] Implement medium-size widget for today's schedule
-2. [ ] List all lessons for today, filtered by current week
+1. [x] Implement medium-size widget for today's schedule
+2. [x] List all lessons for today, filtered by current week
 3. [ ] Add tap action to open app
-4. [ ] Use App Group for data
+4. [x] Use App Group for data
 5. [ ] Handle background refresh
 
 ### Dont forget
